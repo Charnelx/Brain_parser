@@ -138,6 +138,7 @@ class BrainParser:
                         'ImgUrl': None
                         }
 
+                    # All fields that would be used in price
                     items_dict['Vendor'] = item['Vendor']
                     items_dict['NameRu'] = item['NameRu']
                     items_dict['OptPrice'] = item['OptPrice']
@@ -162,14 +163,14 @@ class BrainParser:
                 print('Error occurred while trying to get data.\nError code: {0}'.format(result.status_code))
                 return None
             print('{0} of {1} done!'.format(page_idx, total_pages))
-            # break
+            # break <- for testing purpose to get only first page
         return vendors
 
+    # downloading images
     def _pooler(self, vendors_dic):
         for k in sorted(vendors_dic):
             lst = vendors_dic[k]
             for item in lst:
-                # download images
                 if item['ImgUrl']:
                     file_name = item['ImgName']
                     r = self.session_requests.get(item['ImgUrl'], stream=True)
@@ -179,6 +180,7 @@ class BrainParser:
                                 f.write(chunk)
                 yield k, item
 
+    # writing grabbed data to xlsx file
     def wtireXLS(self, vendors_dic, file_name='test.xlsx'):
         workbook = xlsxwriter.Workbook(file_name)
 
@@ -234,11 +236,16 @@ class BrainParser:
 if __name__ == '__main__':
     DIR = os.path.dirname(os.path.realpath(sys.argv[0]))
     DATE = time.strftime("%d.%m.%Y")
+
+    # filename
     FILE = 'toner_price_{0}.xlsx'.format(DATE)
 
-    parser = BrainParser('acheron89', 'acheron89')
+    parser = BrainParser('username', 'password')
     parser.login()
+
+    # chose category or search-key word
     vendors = parser._getData(category='Tonery_barabany-c1558')
+
     if vendors:
         parser.wtireXLS(vendors,file_name=FILE)
         print('Saved to: {0}\\{1}'.format(DIR, FILE))
